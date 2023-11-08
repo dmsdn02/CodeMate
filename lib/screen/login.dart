@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'FindRegister.dart';
+import 'mainlist.dart'; // mainlist.dart 페이지 파일을 import
 
 void main() {
   runApp(MyApp());
@@ -62,17 +64,17 @@ class LoginPage extends StatelessWidget {
                         prefixIcon: Icon(Icons.email, color: Colors.grey[400]), // 아이콘 추가
                       ),
                       style: TextStyle(
-                        color: Colors.grey[100], // 글자 색상 지정
+                        color: Colors.black, // 글자 색상을 검은색으로 지정
                       ),
                     ),
                   ),
-                  // 가로선 추가
+// 가로선 추가
                   Container(
                     height: 0.8,
                     width: double.infinity,
                     color: Colors.grey[300],
                   ),
-                  // 비밀번호 입력란
+// 비밀번호 입력란
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     child: TextFormField(
@@ -84,7 +86,7 @@ class LoginPage extends StatelessWidget {
                         prefixIcon: Icon(Icons.lock, color: Colors.grey[400]), // 아이콘 추가
                       ),
                       style: TextStyle(
-                        color: Colors.grey[100], // 글자 색상 지정
+                        color: Colors.black, // 글자 색상을 검은색으로 지정
                       ),
                     ),
                   ),
@@ -98,9 +100,19 @@ class LoginPage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   // 로그인 버튼 클릭 시 수행할 작업 추가
+                  String enteredEmail = '1234'; // 이메일 입력란의 값을 가져오거나 하드 코딩
+                  String enteredPassword = '1234'; // 비밀번호 입력란의 값을 가져오거나 하드 코딩
+
+                  // 간단한 예제로 이메일과 비밀번호가 "1234"인 경우에만 mainlist.dart 페이지로 이동
+                  if (enteredEmail == '1234' && enteredPassword == '1234') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainListPage()), // MainListPage로 이동
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xFFF6D5D5), // 버튼 색상 설정
+                  primary: Colors.brown[300], // 버튼 색상 설정
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10), // 둥근 네모박스 버튼
                   ),
@@ -108,7 +120,7 @@ class LoginPage extends StatelessWidget {
                 child: Text(
                   '로그인',
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -121,10 +133,13 @@ class LoginPage extends StatelessWidget {
               height: 45, // 세로 길이
               child: ElevatedButton(
                 onPressed: () {
-                  // 회원가입 버튼 클릭 시 수행할 작업 추가
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => FindRegister()),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.grey[300], // 버튼 색상 설정
+                  primary: Colors.brown[100], // 버튼 색상 설정
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10), // 둥근 네모박스 버튼
                   ),
@@ -132,14 +147,14 @@ class LoginPage extends StatelessWidget {
                 child: Text(
                   '회원가입',
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: Colors.brown[400],
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-            //SizedBox(height: 50), // 버튼과 텍스트 버튼 사이의 공간 추가
+            //SizedBox(height: 1), // 버튼과 텍스트 버튼 사이의 공간 추가
             TextButton(
               onPressed: () {
                 // 비밀번호 찾기 버튼 클릭 시 수행할 작업 추가
