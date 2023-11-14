@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'FindRegister.dart';
+import 'Register.dart';
 import 'mainlist.dart'; // mainlist.dart 페이지 파일을 import
 
 void main() {
@@ -112,7 +113,7 @@ class LoginPage extends StatelessWidget {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.brown[300], // 버튼 색상 설정
+                  backgroundColor: Colors.brown[300], // 버튼 색상 설정
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10), // 둥근 네모박스 버튼
                   ),
@@ -135,11 +136,11 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => FindRegister()),
+                    MaterialPageRoute(builder: (context) => RegisterPage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.brown[100], // 버튼 색상 설정
+                  backgroundColor: Colors.brown[100], // 버튼 색상 설정
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10), // 둥근 네모박스 버튼
                   ),
@@ -157,7 +158,10 @@ class LoginPage extends StatelessWidget {
             //SizedBox(height: 1), // 버튼과 텍스트 버튼 사이의 공간 추가
             TextButton(
               onPressed: () {
-                // 비밀번호 찾기 버튼 클릭 시 수행할 작업 추가
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FindResister()),
+                );// 비밀번호 찾기 버튼 클릭 시 수행할 작업 추가
               },
               child: Text(
                 '비밀번호 찾기',
