@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "140738075473",
+    "project_id": "codemate-b0880",
+    "storage_bucket": "codemate-b0880.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:140738075473:android:194c145b1b3de672ed9170",
+        "android_client_info": {
+          "package_name": "com.example.code_mate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArFULk_D146apQxVTIFuZ49JTgEeGxaXA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
