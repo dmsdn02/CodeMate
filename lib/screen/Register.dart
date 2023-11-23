@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,26 +21,76 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   // 비밀번호
   String password = "";
 
-  // 비밀번호 비교
+  // 비밀번호 확인
   String checkPassword = "";
 
-  String passwordCheck = "";
+  // 닉네임
   String nickname = ""; // 닉네임 입력값을 저장하는 변수
 
   // 닉네임 중복 확인 함수
-  void checkNicknameAvailability(String nickname) {
-    // 여기에 닉네임 중복 확인 로직을 구현합니다.
-    // 중복 확인 로직을 통과하면 사용 가능한 닉네임으로 설정하세요.
+  Future<void> checkNicknameAvailability(String nickname) async {
+    try {
+      // Firebase 데이터베이스에서 닉네임이 있는지 확인
+      var snapshot = await _firestore
+          .collection('users')
+          .where('nickname', isEqualTo: nickname)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        // 닉네임이 이미 존재할 경우
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("중복 확인"),
+              content: Text("이미 존재하는 닉네임입니다."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // 닉네임이 존재하지 않을 경우
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("중복 확인"),
+              content: Text("사용 가능한 닉네임입니다."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print("Error checking nickname availability: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF6E690),
-      body: SingleChildScrollView( // 스크롤 가능하도록 추가
+      body: SingleChildScrollView(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -192,12 +244,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 style: TextStyle(
                                   color: Colors.grey[100],
                                 ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    nickname = value;
+                                  });
+                                },
                               ),
                             ),
                             ElevatedButton(
                               onPressed: () {
                                 // 닉네임 중복 확인 버튼 클릭 시 수행할 작업
-                                final nickname = "닉네임 입력란의 값을 가져와주세요"; // 닉네임 입력란의 값을 가져와 변수에 저장
                                 checkNicknameAvailability(nickname);
                               },
                               style: ElevatedButton.styleFrom(
