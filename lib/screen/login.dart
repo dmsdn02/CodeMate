@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'FindRegister.dart';
 import 'Register.dart';
@@ -17,6 +18,11 @@ class MyApp extends StatelessWidget {
 }
 
 class LoginPage extends StatelessWidget {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,6 +63,7 @@ class LoginPage extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     child: TextFormField(
+                      controller: emailController,
                       decoration: InputDecoration(
                         labelText: '이메일',
                         filled: true,
@@ -69,16 +76,18 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
                   ),
-// 가로선 추가
+                  // 가로선 추가
                   Container(
                     height: 0.8,
                     width: double.infinity,
                     color: Colors.grey[300],
                   ),
-// 비밀번호 입력란
+                  // 비밀번호 입력란
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     child: TextFormField(
+                      controller: passwordController,
+                      obscureText: true, // 비밀번호를 가리기 위해 사용
                       decoration: InputDecoration(
                         labelText: '비밀번호',
                         filled: true,
@@ -99,17 +108,25 @@ class LoginPage extends StatelessWidget {
               width: 310, // 원하는 가로 길이로 설정
               height: 45, // 원하는 세로 길이로 설정
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   // 로그인 버튼 클릭 시 수행할 작업 추가
-                  String enteredEmail = '1234'; // 이메일 입력란의 값을 가져오거나 하드 코딩
-                  String enteredPassword = '1234'; // 비밀번호 입력란의 값을 가져오거나 하드 코딩
+                  String enteredEmail = emailController.text;
+                  String enteredPassword = passwordController.text;
 
-                  // 간단한 예제로 이메일과 비밀번호가 "1234"인 경우에만 mainlist.dart 페이지로 이동
-                  if (enteredEmail == '1234' && enteredPassword == '1234') {
+                  try {
+                    await _auth.signInWithEmailAndPassword(
+                      email: enteredEmail,
+                      password: enteredPassword,
+                    );
+
+                    // 로그인에 성공하면 MainListPage로 이동
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MainListPage()), // MainListPage로 이동
+                      MaterialPageRoute(builder: (context) => MainListPage()),
                     );
+                  } catch (e) {
+                    // 로그인에 실패한 경우
+                    print("로그인 실패: $e");
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -160,8 +177,8 @@ class LoginPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FindResister()),
-                );// 비밀번호 찾기 버튼 클릭 시 수행할 작업 추가
+                  MaterialPageRoute(builder: (context) => FindRegister()),
+                );// 비밀번호 찾기 페이지로 이동
               },
               child: Text(
                 '비밀번호 찾기',

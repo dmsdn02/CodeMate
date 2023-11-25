@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
 }
 
@@ -19,26 +21,59 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // 비밀번호
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String email = "";
   String password = "";
+  String confirmPassword = "";
+  String name = "";
+  String nickname = "";
+  String gender = "";
 
-  // 비밀번호 비교
-  String checkPassword = "";
+  void _register() async {
+    try {
+      // 비밀번호 확인
+      if (password != confirmPassword) {
+        print("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        return;
+      }
 
-  String passwordCheck = "";
-  String nickname = ""; // 닉네임 입력값을 저장하는 변수
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-  // 닉네임 중복 확인 함수
-  void checkNicknameAvailability(String nickname) {
-    // 여기에 닉네임 중복 확인 로직을 구현합니다.
+      await _firestore.collection('users').doc(userCredential.user?.uid).set({
+        'email': email,
+        'name': name,
+        'nickname': nickname,
+        'gender': gender,
+      });
+
+      // 회원가입 성공 시 다른 화면으로 이동하는 코드를 추가하세요.
+      // Navigator.push(...);
+    } catch (e) {
+      print("회원가입 실패: $e");
+      // 실패한 경우에 대한 처리를 추가할 수 있습니다.
+    }
+  }
+
+  void checkNicknameAvailability(String nickname) async {
+    // 여기에서 비동기적인 작업 수행 (파이어베이스 데이터베이스 등에서 중복 확인)
+
+    // 예시: Future.delayed를 사용하여 2초 동안 기다리는 작업을 수행한다고 가정
+    await Future.delayed(Duration(seconds: 2));
+
     // 중복 확인 로직을 통과하면 사용 가능한 닉네임으로 설정하세요.
+    print('Nickname $nickname is available!');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF6E690),
-      body: SingleChildScrollView( // 스크롤 가능하도록 추가
+      body: SingleChildScrollView(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -57,7 +92,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      // 이메일 입력란, 비밀번호 입력란, 비밀번호 확인란, 이름 입력, 닉네임 입력, 성별 선택
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
@@ -72,22 +106,25 @@ class _RegisterPageState extends State<RegisterPage> {
                                   prefixIcon: Icon(Icons.email_outlined, color: Colors.grey[400]),
                                 ),
                                 style: TextStyle(
-                                  color: Colors.grey[100],
+                                  color: Colors.black,
                                 ),
+                                onChanged: (value) {
+                                  email = value;
+                                },
                               ),
                             ),
                             Container(
-                              width: 100, // 버튼의 너비를 설정
+                              width: 100,
                               child: ElevatedButton(
                                 onPressed: () {
                                   // 이메일 인증 버튼 클릭 시 수행할 작업 추가
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  primary: Colors.grey[400], // 버튼 색상 설정
+                                  backgroundColor: Colors.grey[400],
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  minimumSize: Size(90, 40), // 버튼의 최소 크기를 지정
+                                  minimumSize: Size(90, 40),
                                 ),
                                 child: Text(
                                   '이메일인증',
@@ -102,14 +139,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           ],
                         ),
                       ),
-
-                      // 가로선 추가
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      // 비밀번호 입력
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: TextFormField(
@@ -117,21 +151,23 @@ class _RegisterPageState extends State<RegisterPage> {
                             labelText: '비밀번호',
                             filled: true,
                             fillColor: Colors.white,
-                            border: InputBorder.none, // 여기서 오류를 수정했습니다
+                            border: InputBorder.none,
                             prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[400]),
                           ),
                           style: TextStyle(
-                            color: Colors.grey[100],
+                            color: Colors.black,
                           ),
+                          obscureText: true,
+                          onChanged: (value) {
+                            password = value;
+                          },
                         ),
                       ),
-                      // 가로선 추가
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      // 비밀번호 확인
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: TextFormField(
@@ -143,17 +179,19 @@ class _RegisterPageState extends State<RegisterPage> {
                             prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[400]),
                           ),
                           style: TextStyle(
-                            color: Colors.grey[100],
+                            color: Colors.black,
                           ),
+                          obscureText: true,
+                          onChanged: (value) {
+                            confirmPassword = value;
+                          },
                         ),
                       ),
-                      // 가로선 추가
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      // 이름 입력
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: TextFormField(
@@ -165,17 +203,18 @@ class _RegisterPageState extends State<RegisterPage> {
                             prefixIcon: Icon(Icons.person_outline, color: Colors.grey[400]),
                           ),
                           style: TextStyle(
-                            color: Colors.grey[100],
+                            color: Colors.black,
                           ),
+                          onChanged: (value) {
+                            name = value;
+                          },
                         ),
                       ),
-                      // 가로선 추가
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      // 닉네임 입력
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
@@ -190,22 +229,23 @@ class _RegisterPageState extends State<RegisterPage> {
                                   prefixIcon: Icon(Icons.account_circle, color: Colors.grey[400]),
                                 ),
                                 style: TextStyle(
-                                  color: Colors.grey[100],
+                                  color: Colors.black,
                                 ),
+                                onChanged: (value) {
+                                  nickname = value;
+                                },
                               ),
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                // 닉네임 중복 확인 버튼 클릭 시 수행할 작업
-                                final nickname = "닉네임 입력란의 값을 가져와주세요"; // 닉네임 입력란의 값을 가져와 변수에 저장
                                 checkNicknameAvailability(nickname);
                               },
                               style: ElevatedButton.styleFrom(
-                                primary: Colors.grey[400], // 버튼 색상 설정
+                                backgroundColor: Colors.grey[400],
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                minimumSize: Size(90, 40), // 버튼의 최소 크기를 지정
+                                minimumSize: Size(90, 40),
                               ),
                               child: Text(
                                 '중복 확인',
@@ -219,13 +259,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           ],
                         ),
                       ),
-                      // 가로선 추가
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      // 성별 선택
                       Container(
                         height: 50.0,
                         padding: EdgeInsets.symmetric(horizontal: 10),
@@ -237,8 +275,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             SizedBox(width: 30),
                             Radio(
                               value: "남",
-                              groupValue: null,
-                              onChanged: null,
+                              groupValue: gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  gender = value.toString();
+                                });
+                              },
                             ),
                             Text(
                               "남",
@@ -248,8 +290,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             SizedBox(width: 20),
                             Radio(
                               value: "여",
-                              groupValue: null,
-                              onChanged: null,
+                              groupValue: gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  gender = value.toString();
+                                });
+                              },
                             ),
                             Text(
                               "여",
@@ -264,16 +310,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: 20.0),
                 Container(
-                  width: 310, // 원하는 가로 길이로 설정
-                  height: 45, // 원하는 세로 길이로 설정
+                  width: 310,
+                  height: 45,
                   child: ElevatedButton(
                     onPressed: () {
-                      // 회원가입 버튼 클릭 시 수행할 작업 추가
+                      _register();
                     },
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0xFFFFF1B4), // 버튼 색상 설정
+                      backgroundColor: Color(0xFFFFF1B4),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // 둥근 네모박스 버튼
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     child: Text(
