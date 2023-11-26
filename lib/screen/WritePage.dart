@@ -65,7 +65,7 @@ class _WritePageState extends State<WritePage> {
 
   Widget _buildTextFieldWithLabel(String label, String hintText,
       {int? maxLines}) {
-    double? contentHeight = label == '내용' ? 350.0 : null; // label이 '내용'인 경우에는 contentHeight에 350.0을 할당하고, 그렇지 않은 경우에는 null을 할당
+    double? contentHeight = label == '내용' ? 300.0 : null; // label이 '내용'인 경우에는 contentHeight에 350.0을 할당하고, 그렇지 않은 경우에는 null을 할당
 
     EdgeInsetsGeometry labelPadding;
     switch (label) { // 각 레이블 패딩 조절

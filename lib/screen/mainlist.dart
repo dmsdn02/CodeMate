@@ -1,3 +1,5 @@
+import 'package:code_mate/screen/WritePage.dart';
+import 'package:code_mate/screen/mypage.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -25,6 +27,51 @@ class MainListPage extends StatelessWidget {
           ChatListItem('친구 3', '최근 메시지 3', 'Nov 5'),
           // 원하는 만큼 채팅방 항목을 추가
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // + 버튼이 눌리면 WritePage로 이동
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => WritePage()),
+          );
+        },
+        child: Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.settings), // My Page 아이콘
+              onPressed: () {
+                // My Page 버튼이 탭되면 MyPage로 이동
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => mypage()),
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.home),
+              onPressed: () {
+                // 홈 버튼이 탭되면 MainListPage로 이동
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MainListPage()),
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.chat), // My Page 아이콘
+              onPressed: () {
+                // 채팅방 페이지로 연결
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
