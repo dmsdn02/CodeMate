@@ -1,5 +1,6 @@
 import 'package:code_mate/screen/chat.dart';
 import 'package:code_mate/screen/login.dart';
+import 'package:code_mate/screen/mainlist.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:web_socket_channel/io.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginPage(),
+      home: MainListPage(),
     );
   }
 }

@@ -30,7 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String password = "";
   String confirmPassword = "";
   String name = "";
-  String nickname = "";
+  String userNickname = "";
   String gender = "";
 
   bool isRegistered = false;
@@ -46,7 +46,7 @@ class _RegisterPageState extends State<RegisterPage> {
           password.isEmpty ||
           confirmPassword.isEmpty ||
           name.isEmpty ||
-          nickname.isEmpty ||
+          userNickname.isEmpty ||
           gender.isEmpty) {
         print("정보를 입력해주세요.");
         setState(() {
@@ -68,7 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
       await _firestore.collection('users').doc(userCredential.user?.uid).set({
         'email': email,
         'name': name,
-        'nickname': nickname,
+        'userNickname': userNickname,
         'gender': gender,
       });
 
@@ -256,7 +256,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: Colors.black,
                                 ),
                                 onChanged: (value) {
-                                  nickname = value;
+                                  userNickname = value;
                                 },
                               ),
                             ),
@@ -360,7 +360,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 SizedBox(height: 20.0),
-                showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && nickname.isNotEmpty && gender.isNotEmpty
+                showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && userNickname.isNotEmpty && gender.isNotEmpty
                     ? GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -397,7 +397,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         password.isEmpty ||
                         confirmPassword.isEmpty ||
                         name.isEmpty ||
-                        nickname.isEmpty ||
+                        userNickname.isEmpty ||
                         gender.isEmpty)
                     ? SizedBox(
                   //height: 10,

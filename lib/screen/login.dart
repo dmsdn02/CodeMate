@@ -133,6 +133,7 @@ class LoginPage extends StatelessWidget {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
+                          surfaceTintColor: Colors.transparent,
                           backgroundColor: Colors.white,
                           title: Text('로그인 실패'),
                           content: Text('이메일 또는 비밀번호가 잘못되었습니다.'),
