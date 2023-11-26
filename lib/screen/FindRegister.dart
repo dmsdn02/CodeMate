@@ -2,7 +2,7 @@ import 'package:code_mate/screen/Register.dart';
 import 'package:code_mate/screen/login.dart';
 import 'package:flutter/material.dart';
 
-class FindResister extends StatelessWidget {
+class FindRegister extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
