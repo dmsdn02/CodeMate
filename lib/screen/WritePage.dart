@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import 'mainlist.dart';
 
 class WritePage extends StatefulWidget {
   @override
@@ -6,6 +10,10 @@ class WritePage extends StatefulWidget {
 }
 
 class _WritePageState extends State<WritePage> {
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _languageController = TextEditingController();
+  TextEditingController _contentController = TextEditingController();
+
   List<int> years = List.generate(10, (index) => DateTime.now().year + index);
   List<int> months = List.generate(12, (index) => index + 1);
   List<int> days = List.generate(31, (index) => index + 1);
@@ -19,6 +27,49 @@ class _WritePageState extends State<WritePage> {
   int selectedEndDay = DateTime.now().day;
 
   DateTime? studyEndDate; // nullable한 DateTime 변수 studyEndDate를 선언
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  _WritePageState() {
+    _titleController = TextEditingController();
+    _languageController = TextEditingController();
+    _contentController = TextEditingController();
+  }
+
+  Future<void> _addPost() async {
+    try {
+      // 현재 로그인한 사용자 정보 가져오기
+      User? currentUser = _auth.currentUser;
+
+      if (currentUser != null) {
+        //String? userNickname = currentUser.displayName;
+
+        // Firestore에 글 추가
+        await FirebaseFirestore.instance.collection('posts').add({
+          'title': _titleController.text,
+          'language': _languageController.text,
+          'startDate': DateTime(selectedStartYear, selectedStartMonth, selectedStartDay),
+          'endDate': DateTime(selectedEndYear, selectedEndMonth, selectedEndDay),
+          'content': _contentController.text,
+          'userId' : currentUser.uid,
+          //'userNickname': currentUser.displayName, // 사용자의 닉네임을 저장
+        });
+
+        // WritePage에서 MainListPage로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MainListPage()),
+        );
+        print('Navigator.push called');
+
+      } else {
+        print('사용자 정보를 가져오는데 실패했습니다.');
+      }
+    } catch (e) {
+      print('오류 발생: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -36,27 +87,28 @@ class _WritePageState extends State<WritePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             SizedBox(height: 20,),
-            _buildTextFieldWithLabel('제목', '제목을 입력하세요'),
+            _buildTextFieldWithLabel('제목', '제목을 입력하세요', _titleController),
             SizedBox(height: 16),
-            _buildTextFieldWithLabel('개발 언어', '사용할 언어를 입력하세요'),
+            _buildTextFieldWithLabel('개발 언어', '사용할 언어를 입력하세요', _languageController),
             SizedBox(height: 16),
             _buildDateDropdown('공부기간', years, months, days),
             SizedBox(height: 1),
             _buildStudyEndDateDropdown( years, months, days),
             SizedBox(height: 16),
-            _buildTextFieldWithLabel('내용', '내용을 입력하세요'),
+            _buildTextFieldWithLabel('내용', '내용을 입력하세요', _contentController),
             SizedBox(height: 16),
             // 완료버튼
             ElevatedButton(
               onPressed: () {
-                // 완료버튼 로직 추가
+                _addPost(); // 완료버튼 로직 추가
               },
               child: Text('완료', style: TextStyle(color: Colors.black, fontSize: 18),),
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Color(0xFFFFF1B4)), // 버튼 배경색
-                minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)), // 버튼의 최소 크기 설정
+                backgroundColor: MaterialStateProperty.all<Color>(Color(0xFFFFF1B4)),
+                minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
               ),
             ),
+
           ],
         ),
       ),
@@ -64,19 +116,19 @@ class _WritePageState extends State<WritePage> {
   }
 
   Widget _buildTextFieldWithLabel(String label, String hintText,
-      {int? maxLines}) {
-    double? contentHeight = label == '내용' ? 350.0 : null; // label이 '내용'인 경우에는 contentHeight에 350.0을 할당하고, 그렇지 않은 경우에는 null을 할당
+      TextEditingController controller, {int? maxLines}) {
+    double? contentHeight = label == '내용' ? 300.0 : null;
 
     EdgeInsetsGeometry labelPadding;
-    switch (label) { // 각 레이블 패딩 조절
+    switch (label) {
       case '제목':
         labelPadding = EdgeInsets.only(left: 5, right: 5);
         break;
       case '개발 언어':
-        labelPadding = EdgeInsets.only(left: 3,right: 5);
+        labelPadding = EdgeInsets.only(left: 3, right: 5);
         break;
       case '내용':
-        labelPadding = EdgeInsets.only(left: 5 , right: 5);
+        labelPadding = EdgeInsets.only(left: 5, right: 5);
         break;
       default:
         labelPadding = EdgeInsets.zero;
@@ -86,7 +138,7 @@ class _WritePageState extends State<WritePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: double.infinity, // Row의 전체 너비를 사용하도록 설정
+          width: double.infinity,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -103,7 +155,7 @@ class _WritePageState extends State<WritePage> {
               SizedBox(width: 16),
               Expanded(
                 child: Container(
-                  height: contentHeight, // contentHeight에 따라 높이가 동적으로 결정됨
+                  height: contentHeight,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
@@ -111,7 +163,8 @@ class _WritePageState extends State<WritePage> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: TextField(
-                      maxLines: maxLines, // 최대 행 수 설정
+                      controller: controller, // 컨트롤러를 할당
+                      maxLines: maxLines,
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: hintText,
@@ -127,6 +180,7 @@ class _WritePageState extends State<WritePage> {
       ],
     );
   }
+
 
 
   Widget _buildDateDropdown( // 시작일 드롭다운
