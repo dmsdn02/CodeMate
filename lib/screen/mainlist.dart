@@ -122,7 +122,7 @@ class MainListPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => mypage()),
+                  MaterialPageRoute(builder: (context) => MyPage()),
                 );
               },
             ),
