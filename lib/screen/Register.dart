@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() async {
-  runApp(MyApp());
-}
+import 'login.dart';
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: RegisterPage(),
-    );
-  }
-}
+//void main() async {
+//runApp(MyApp());
+//}
+
+//class MyApp extends StatelessWidget {
+//@override
+//Widget build(BuildContext context) {
+//return MaterialApp(
+//home: RegisterPage(),
+//  );
+//}
+//}
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -31,9 +33,28 @@ class _RegisterPageState extends State<RegisterPage> {
   String nickname = "";
   String gender = "";
 
+  bool isRegistered = false;
+  bool showErrorMessage = false;
+
   void _register() async {
+    setState(() {
+      showErrorMessage = true;
+    });
+
     try {
-      // 비밀번호 확인
+      if (email.isEmpty ||
+          password.isEmpty ||
+          confirmPassword.isEmpty ||
+          name.isEmpty ||
+          nickname.isEmpty ||
+          gender.isEmpty) {
+        print("정보를 입력해주세요.");
+        setState(() {
+          isRegistered = false;
+        });
+        return;
+      }
+
       if (password != confirmPassword) {
         print("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         return;
@@ -51,11 +72,11 @@ class _RegisterPageState extends State<RegisterPage> {
         'gender': gender,
       });
 
-      // 회원가입 성공 시 다른 화면으로 이동하는 코드를 추가하세요.
-      // Navigator.push(...);
+      setState(() {
+        isRegistered = true;
+      });
     } catch (e) {
       print("회원가입 실패: $e");
-      // 실패한 경우에 대한 처리를 추가할 수 있습니다.
     }
   }
 
@@ -80,6 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
+                SizedBox(height: 80.0),
                 Text('회원가입', style: TextStyle(fontSize: 27.0, fontWeight: FontWeight.bold)),
                 SizedBox(height: 23.0),
                 Container(
@@ -113,6 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                             ),
+                            /* 이메일 인증 버튼
                             Container(
                               width: 100,
                               child: ElevatedButton(
@@ -135,7 +158,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                 ),
                               ),
-                            ),
+                            ),*/
                           ],
                         ),
                       ),
@@ -215,6 +238,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
+
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
@@ -236,6 +260,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                             ),
+                            /* 닉네임 중복확인 버튼
                             ElevatedButton(
                               onPressed: () {
                                 checkNicknameAvailability(nickname);
@@ -255,7 +280,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
+                            ),*/
                           ],
                         ),
                       ),
@@ -315,12 +340,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       _register();
+                      setState(() {});
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFFFF1B4),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      elevation: 2, // 그림자 추가
                     ),
                     child: Text(
                       '가입하기',
@@ -332,6 +359,55 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
+                SizedBox(height: 20.0),
+                showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && nickname.isNotEmpty && gender.isNotEmpty
+                    ? GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()), // 실제 로그인 페이지 위젯으로 변경해야 해
+                    );
+                  },
+                  child: SizedBox(
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(color: Colors.brown, fontSize: 17),
+                        children: [
+                          TextSpan(
+                            text: '  가입이 완료되었습니다.\n',
+                          ),
+                          TextSpan(
+                            text: '로그인 페이지로 이동하기',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
+                              // 밑줄 스타일을 설정할 수 있어요.
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                    : SizedBox.shrink(),
+                //SizedBox(height: 20),
+                !isRegistered &&
+                    showErrorMessage &&
+                    (email.isEmpty ||
+                        password.isEmpty ||
+                        confirmPassword.isEmpty ||
+                        name.isEmpty ||
+                        nickname.isEmpty ||
+                        gender.isEmpty)
+                    ? SizedBox(
+                  //height: 10,
+                  child: Text(
+                    '정보를 입력하세요.',
+                    style: TextStyle(color: Colors.red, fontSize: 18),
+                  ),
+                )
+                    : SizedBox.shrink(),
+                //SizedBox(height: 20),
               ],
             ),
           ),
