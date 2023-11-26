@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:code_mate/screen/WritePage.dart';
 import 'package:code_mate/screen/mypage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -8,29 +10,60 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MainListPage(), // 채팅방 목록 페이지를 홈으로 설정
+      home: MainListPage(),
     );
   }
 }
 
 class MainListPage extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('메인페이지'),
       ),
-      body: ListView(
-        children: <Widget>[
-          ChatListItem('친구 1', '최근 메시지 1', '10:30 AM'),
-          ChatListItem('친구 2', '최근 메시지 2', 'Yesterday'),
-          ChatListItem('친구 3', '최근 메시지 3', 'Nov 5'),
-          // 원하는 만큼 채팅방 항목을 추가
-        ],
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('posts').snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            return CircularProgressIndicator();
+          }
+
+          var posts = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              var post = posts[index];
+              String userId = post['userId'];
+
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+                builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> userSnapshot) {
+                  if (userSnapshot.connectionState == ConnectionState.done) {
+                    String userNickname = userSnapshot.data!.get('userNickname') ?? '';
+
+
+                    return ChatListItem(
+                      post['title'],
+                      post['language'],
+                      post['content'],
+                      userNickname,
+                    );
+                  } else {
+                    // 데이터가 로드되지 않은 경우 로딩 표시 등을 넣을 수 있습니다.
+                    return CircularProgressIndicator();
+                  }
+                },
+              );
+            },
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // + 버튼이 눌리면 WritePage로 이동
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => WritePage()),
@@ -45,9 +78,8 @@ class MainListPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             IconButton(
-              icon: Icon(Icons.settings), // My Page 아이콘
+              icon: Icon(Icons.settings),
               onPressed: () {
-                // My Page 버튼이 탭되면 MyPage로 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => mypage()),
@@ -57,7 +89,6 @@ class MainListPage extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.home),
               onPressed: () {
-                // 홈 버튼이 탭되면 MainListPage로 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MainListPage()),
@@ -65,7 +96,7 @@ class MainListPage extends StatelessWidget {
               },
             ),
             IconButton(
-              icon: Icon(Icons.chat), // My Page 아이콘
+              icon: Icon(Icons.chat),
               onPressed: () {
                 // 채팅방 페이지로 연결
               },
@@ -78,22 +109,24 @@ class MainListPage extends StatelessWidget {
 }
 
 class ChatListItem extends StatelessWidget {
-  final String friendName;
-  final String recentMessage;
-  final String lastActive;
+  final String title;
+  final String language;
+  final String content;
+  final String userNickname;
 
-  ChatListItem(this.friendName, this.recentMessage, this.lastActive);
+  ChatListItem(this.title, this.language, this.content, this.userNickname);
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CircleAvatar(
-        // 친구 프로필 이미지 설정
-        backgroundImage: AssetImage('assets/profile_image.png'),
+      title: Text(title),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('작성자: $userNickname'),
+          Text('Language: $language\nContent: $content'),
+        ],
       ),
-      title: Text(friendName),
-      subtitle: Text(recentMessage),
-      trailing: Text(lastActive),
       onTap: () {
         // 해당 채팅방 항목을 클릭했을 때 수행할 작업 추가
         // 예를 들어, 채팅방으로 이동하거나 채팅 상세 정보를 표시할 수 있음
