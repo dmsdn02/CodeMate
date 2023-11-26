@@ -127,6 +127,26 @@ class LoginPage extends StatelessWidget {
                   } catch (e) {
                     // 로그인에 실패한 경우
                     print("로그인 실패: $e");
+
+                    // 이메일 또는 비밀번호가 틀렸음을 알리는 다이얼로그 표시
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          backgroundColor: Colors.white,
+                          title: Text('로그인 실패'),
+                          content: Text('이메일 또는 비밀번호가 잘못되었습니다.'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('확인'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
