@@ -4,19 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'login.dart';
 
-//void main() async {
-//runApp(MyApp());
-//}
-
-//class MyApp extends StatelessWidget {
-//@override
-//Widget build(BuildContext context) {
-//return MaterialApp(
-//home: RegisterPage(),
-//  );
-//}
-//}
-
 class RegisterPage extends StatefulWidget {
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -35,6 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool isRegistered = false;
   bool showErrorMessage = false;
+  bool emailVerified = false;
 
   void _register() async {
     setState(() {
@@ -60,10 +48,26 @@ class _RegisterPageState extends State<RegisterPage> {
         return;
       }
 
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential;
+
+      try {
+        // 사용자에게 이메일 인증 메일 전송
+        await _sendEmailVerification();
+
+        // 여기에서 사용자에게 이메일 인증을 진행하도록 UI를 제공해야 합니다.
+        // 사용자가 인증을 완료하면 Firestore에 정보 저장
+        userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } catch (e) {
+        // 이미 가입된 이메일이거나 인증된 이메일인 경우
+        print("회원가입 실패: $e");
+        setState(() {
+          print("이미 인증된 이메일: $e");
+        });
+        return;
+      }
 
       await _firestore.collection('users').doc(userCredential.user?.uid).set({
         'email': email,
@@ -80,13 +84,37 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  Future<void> _sendEmailVerification() async {
+    try {
+      User? user = _auth.currentUser;
+
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        print('이메일 인증 메일이 전송되었습니다. 이메일을 확인해주세요.');
+      } else {
+        print('이미 이메일이 인증되었습니다.');
+      }
+    } catch (e) {
+      print('이메일 인증 메일 전송 실패: $e');
+    }
+  }
+
+  //사용자의 이메일이 인증되었는지 확인하는 데 사용하는 함수인데, 이 코드에선 사용 X (혹시 몰라서 냅둠..)
+  Future<void> _checkEmailVerification() async {
+    User? user = _auth.currentUser;
+    await user?.reload();
+    user = _auth.currentUser;
+
+    if (user != null && user.emailVerified) {
+      print('이미 이메일이 인증되었습니다.');
+    } else {
+      print('이메일이 아직 인증되지 않았습니다.');
+    }
+  }
+
   void checkNicknameAvailability(String nickname) async {
     // 여기에서 비동기적인 작업 수행 (파이어베이스 데이터베이스 등에서 중복 확인)
-
-    // 예시: Future.delayed를 사용하여 2초 동안 기다리는 작업을 수행한다고 가정
     await Future.delayed(Duration(seconds: 2));
-
-    // 중복 확인 로직을 통과하면 사용 가능한 닉네임으로 설정하세요.
     print('Nickname $nickname is available!');
   }
 
@@ -135,12 +163,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                             ),
-                            /* 이메일 인증 버튼
-                            Container(
+                            /*Container(
                               width: 100,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  // 이메일 인증 버튼 클릭 시 수행할 작업 추가
+                                onPressed: () async {
+                                  await _sendEmailVerification();
+                                  // 이메일 인증 상태 확인
+                                  await _checkEmailVerification();
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.grey[400],
@@ -238,7 +267,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
@@ -360,12 +388,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 SizedBox(height: 20.0),
-                showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && userNickname.isNotEmpty && gender.isNotEmpty
+                showErrorMessage && isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && userNickname.isNotEmpty && gender.isNotEmpty
                     ? GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => LoginPage()), // 실제 로그인 페이지 위젯으로 변경해야 해
+                      MaterialPageRoute(builder: (context) => LoginPage()), // 실제 로그인 페이지 위젯으로 변경해야 함
                     );
                   },
                   child: SizedBox(
@@ -381,12 +409,18 @@ class _RegisterPageState extends State<RegisterPage> {
                             style: TextStyle(
                               decoration: TextDecoration.underline,
                               fontWeight: FontWeight.bold,
-                              // 밑줄 스타일을 설정할 수 있어요.
                             ),
                           ),
                         ],
                       ),
                     ),
+                  ),
+                )
+                    : !isRegistered && showErrorMessage && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && userNickname.isNotEmpty && gender.isNotEmpty
+                    ? SizedBox(
+                  child: Text(
+                    '이미 가입된 이메일입니다.',
+                    style: TextStyle(color: Colors.red, fontSize: 18),
                   ),
                 )
                     : SizedBox.shrink(),
@@ -408,6 +442,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 )
                     : SizedBox.shrink(),
                 //SizedBox(height: 20),
+
+
               ],
             ),
           ),
