@@ -4,6 +4,10 @@ import 'package:code_mate/screen/mypage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'ChatList.dart';
+import 'Information.dart';
+import 'appbar.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -21,11 +25,7 @@ class MainListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: Color(0xFFF6E690),
-        title: Text('메인페이지'),
-      ),
+      appBar: CustomAppBar(title: '메인'),
       backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         child: StreamBuilder(
@@ -71,7 +71,18 @@ class MainListPage extends StatelessWidget {
                               ],
                             ),
                             onTap: () {
-                              // 클릭 시 수행할 동작 추가
+                              // 클릭 시 InformationPage로 이동
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => InformationPage(
+                                    title: post['title'],
+                                    content: post['content'] ?? '',
+                                    userNickname: userNickname,
+                                    language: post['language'] ?? '',
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         ),
@@ -109,40 +120,32 @@ class MainListPage extends StatelessWidget {
         ),
       ),
 
-      bottomNavigationBar: BottomAppBar(
-        surfaceTintColor: Colors.transparent,
-        color: Color(0xFFF6E690),
-        shape: CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MyPage()),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.home),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainListPage()),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.chat),
-              onPressed: () {
-                // 채팅방 페이지로 연결
-              },
-            ),
-          ],
-        ),
+      bottomNavigationBar: CustomBottomBar(
+        // 바텀바에 대한 콜백 함수들 설정
+        onMyPagePressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MyPage()),
+          );
+        },
+        onMainPagePressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MainListPage()),
+          );
+        },
+        onChatPressed: () {
+          // Firebase Authentication을 통해 현재 사용자 가져오기
+          FirebaseAuth _auth = FirebaseAuth.instance;
+          User? user = _auth.currentUser;
+
+          if (user != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatList(userId: user.uid)),
+            );
+          }
+        },
       ),
     );
   }

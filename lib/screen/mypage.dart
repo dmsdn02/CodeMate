@@ -1,12 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:code_mate/screen/mainlist.dart';
+import 'package:code_mate/screen/appbar.dart';
+
+import 'ChatList.dart';
+
+void main() {
+  runApp(MaterialApp(
+    home: MyPage(),
+  ));
+}
 
 class MyPage extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('마이페이지'),
-      ),
+      appBar: CustomAppBar(title: '마이페이지'), // CustomAppBar로 변경
       body: Padding(
         padding: EdgeInsets.all(20.0),
         child: Column(
@@ -87,12 +98,32 @@ class MyPage extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: CustomBottomBar(
+        // 바텀바에 대한 콜백 함수들 설정
+        onMyPagePressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MyPage()),
+          );
+        },
+        onMainPagePressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainListPage()),
+          );
+        },
+        onChatPressed: () async {
+          // Firebase Authentication을 통해 현재 사용자 가져오기
+          User? user = _auth.currentUser;
+
+          if (user != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatList(userId: user.uid)),
+            );
+          }
+        },
+      ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: MyPage(),
-  ));
 }
