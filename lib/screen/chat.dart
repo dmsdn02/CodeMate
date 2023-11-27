@@ -1,37 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:web_socket_channel/io.dart';
-import 'package:code_mate/main.dart';
-
-void main() {
-  runApp(MyApp());
-}
 
 class ChatScreen extends StatefulWidget {
-  final IOWebSocketChannel? channel;
+  final String title;
+  final String userNickname;
+  final String language;
+  final String content;
 
-  ChatScreen({Key? key, this.channel}) : super(key: key);
+  ChatScreen({
+    required this.title,
+    required this.userNickname,
+    required this.language,
+    required this.content,
+  });
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   late IOWebSocketChannel _channel;
   late TextEditingController _controller;
   List<Map<String, dynamic>> _messages = [];
 
+
   @override
   void initState() {
     super.initState();
-    _channel = widget.channel ?? IOWebSocketChannel.connect('ws://192.168.219.153:8080');
+    _channel = IOWebSocketChannel.connect('ws://192.168.56.1:8080');
     _controller = TextEditingController();
+    _loadMessages();
+    WidgetsBinding.instance?.addObserver(this);
   }
 
   @override
   void dispose() {
     _channel.sink.close();
     _controller.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadMessages();
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  void _loadMessages() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? messagesJson = prefs.getStringList(widget.content); // 수정된 부분
+    if (messagesJson != null) {
+      setState(() {
+        _messages = messagesJson.map((json) => jsonDecode(json)).toList().cast<Map<String, dynamic>>();
+      });
+    }
   }
 
   @override
@@ -54,51 +81,41 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: _messages.length,
               itemBuilder: (BuildContext context, int index) {
                 int reversedIndex = _messages.length - index - 1;
+                bool isMe = _messages[reversedIndex]['senderId'] == '내 계정 ID'; // 발신자 ID 비교
+
                 return Column(
-                  crossAxisAlignment: _messages[reversedIndex]['isMe']
-                      ? CrossAxisAlignment.end // 보내는 사람의 메시지는 오른쪽 정렬
-                      : CrossAxisAlignment.start, // 받는 사람의 메시지는 왼쪽 정렬
+                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: Column(
-                        crossAxisAlignment: _messages[reversedIndex]['isMe']
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
+                        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _messages[reversedIndex]['nickname'],
+                            isMe ? '나' : _messages[reversedIndex]['nickname'],
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: _messages[reversedIndex]['isMe']
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: isMe ? Colors.black : Colors.white,
                             ),
                           ),
                           Row(
-                            mainAxisAlignment: _messages[reversedIndex]['isMe']
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
+                            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                             children: [
                               Container(
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: _messages[reversedIndex]['isMe']
-                                      ? Colors.yellow[100]
-                                      : Colors.grey[300],
+                                  color: isMe ? Colors.yellow[100] : Colors.grey[300],
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Column(
-                                  crossAxisAlignment: _messages[reversedIndex]['isMe']
-                                      ? CrossAxisAlignment.end
-                                      : CrossAxisAlignment.start,
+                                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       _messages[reversedIndex]['message'],
                                       style: TextStyle(fontSize: 16),
-                                      softWrap: true, // 줄 바꿈 허용
-                                      maxLines: null, // 최대 줄 수 없음
-                                      overflow: TextOverflow.visible, // 내용이 넘칠 경우 가리지 않고 보여줌
+                                      softWrap: true,
+                                      maxLines: null,
+                                      overflow: TextOverflow.visible,
                                     ),
                                     Text(
                                       _messages[reversedIndex]['time'],
@@ -106,9 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         fontSize: 12,
                                         color: Colors.grey,
                                       ),
-                                      textAlign: _messages[reversedIndex]['isMe']
-                                          ? TextAlign.end
-                                          : TextAlign.start,
+                                      textAlign: isMe ? TextAlign.end : TextAlign.start,
                                     ),
                                   ],
                                 ),
@@ -168,27 +183,21 @@ class _ChatScreenState extends State<ChatScreen> {
       Map<String, dynamic> newMessage = {
         'message': message,
         'time': formattedTime,
-        'isMe': true, // 보내는 사람 여부
-        'nickname': '나', // 닉네임(변경 가능)
+        'isMe': true,
+        'nickname': '나',
       };
       setState(() {
         _messages.add(newMessage);
       });
+      _saveMessages();
       _channel.sink.add(message);
       _controller.clear();
     }
   }
-}
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: ChatScreen(),
-    );
+  void _saveMessages() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> messagesJson = _messages.map((message) => jsonEncode(message)).toList();
+    await prefs.setStringList(widget.content, messagesJson); // 수정된 부분
   }
 }
