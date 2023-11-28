@@ -1,21 +1,44 @@
-import 'package:code_mate/screen/Register.dart';
-import 'package:code_mate/screen/login.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class FindRegister extends StatelessWidget {
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: FindRegister(),
+    );
+  }
+}
+
+class FindRegister extends StatefulWidget {
+  @override
+  _FindRegisterState createState() => _FindRegisterState();
+}
+
+class _FindRegisterState extends State<FindRegister> {
+  final TextEditingController emailController = TextEditingController();
+  final RegExp emailRegExp = RegExp(
+    r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+  );
+  bool isEmailInvalid = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(""),
-        backgroundColor: Color(0xFFF6E690), // 앱바 배경색 설정
+        backgroundColor: Color(0xFFF6E690),
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 100.0, left: 16.0), // padding
+            padding: const EdgeInsets.only(top: 100.0, left: 16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Icon(
                   Icons.lock_outline,
@@ -38,86 +61,77 @@ class FindRegister extends StatelessWidget {
                 Text(
                   '회원정보에 등록한 이메일을 입력해주세요.\n등록한 이메일로 비밀번호 재설정 메일이 발송됩니다.',
                   style: TextStyle(fontSize: 16),
-                  textAlign: TextAlign.left, // 왼쪽 정렬
+                  textAlign: TextAlign.left,
                 ),
                 SizedBox(height: 20),
-
-                // 이메일 입력 폼
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: TextFormField(
+                    controller: emailController,
                     decoration: InputDecoration(
-                      labelText: '이메일', // 이메일 입력
+                      labelText: '이메일',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (value) {
+                      setState(() {
+                        isEmailInvalid = !isEmailValid(value);
+                      });
+                    },
                   ),
                 ),
-
+                Visibility(
+                  visible: isEmailInvalid,
+                  child: Text(
+                    '올바른 이메일 형식이 아닙니다.',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
                 SizedBox(height: 20),
-
-                // 비밀번호 재설정 버튼
                 ElevatedButton(
                   onPressed: () {
-                    // 비밀번호 재설정 로직 추가
+                    String email = emailController.text.trim();
+                    if (isEmailValid(email)) {
+                      // 올바른 이메일인 경우에만 이메일 전송
+                      sendPasswordResetEmail(email);
+                    }
                   },
                   child: Text(
                     '이메일 전송',
                     style: TextStyle(
-                      color: Colors.black, // 텍스트 색상
-                      fontSize: 15, // 폰트 크기
-                      //fontWeight: FontWeight.bold, // 폰트 두께
+                      color: Colors.black,
+                      fontSize: 15,
                     ),
                   ),
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xFFFFF1B4)), // 버튼 배경색
-                    minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)), // 버튼의 최소 크기 설정
+                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xFFFFF1B4)),
+                    minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
                   ),
                 ),
+                SizedBox(height: 10),
               ],
             ),
           ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.0), // 원하는 가로 패딩 설정
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end, // 가로로 양 끝에 정렬
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );// 로그인 버튼 클릭 시 수행할 작업 추가
-                  },
-                  child: Text(
-                    '로그인',
-                    style: TextStyle(
-                      color: Colors.grey, // 텍스트 색상 설정
-                      fontSize: 16, // 텍스트 크기 설정
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterPage()),
-                    );// 회원가입 버튼 클릭 시 수행할 작업 추가
-                  },
-                  child: Text(
-                    '회원가입',
-                    style: TextStyle(
-                      color: Colors.grey, // 텍스트 색상 설정
-                      fontSize: 16, // 텍스트 크기 설정
-                    ),
-                  ),
-                ),
-              ], // children
-            ),
-          )
-        ], // children
+        ],
       ),
     );
+  }
+
+  bool isEmailValid(String email) {
+    return emailRegExp.hasMatch(email);
+  }
+
+  void sendPasswordResetEmail(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      // 비밀번호 재설정 이메일이 성공적으로 전송됨
+      print('이메일 전송 성공');
+      // 추가적인 UI 작업 또는 네비게이션 등을 수행할 수 있음
+    } catch (e) {
+      // 이메일 전송 실패
+      print('이메일 전송 실패: $e');
+      // 에러 메시지를 사용자에게 표시할 수 있음
+    }
   }
 }
