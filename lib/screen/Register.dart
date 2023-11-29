@@ -2,21 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'login.dart';
-
-//void main() async {
-//runApp(MyApp());
-//}
-
-//class MyApp extends StatelessWidget {
-//@override
-//Widget build(BuildContext context) {
-//return MaterialApp(
-//home: RegisterPage(),
-//  );
-//}
-//}
-
 class RegisterPage extends StatefulWidget {
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -35,6 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool isRegistered = false;
   bool showErrorMessage = false;
+  bool emailVerified = false;
 
   void _register() async {
     setState(() {
@@ -60,17 +46,8 @@ class _RegisterPageState extends State<RegisterPage> {
         return;
       }
 
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      await _firestore.collection('users').doc(userCredential.user?.uid).set({
-        'email': email,
-        'name': name,
-        'userNickname': userNickname,
-        'gender': gender,
-      });
+      // 사용자에게 이메일 인증 메일 전송
+      await _sendEmailVerification();
 
       setState(() {
         isRegistered = true;
@@ -80,19 +57,64 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  Future<void> _sendEmailVerification() async {
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // Firestore에 사용자 정보 저장
+        await _firestore.collection('users').doc(user.uid).set({
+          'email': email,
+          'name': name,
+          'userNickname': userNickname,
+          'gender': gender,
+        });
+
+        // 사용자에게 이메일 인증 메일 전송
+        await user.sendEmailVerification();
+        print('이메일 인증 메일이 전송되었습니다. 이메일을 확인해주세요.');
+      }
+    } catch (e) {
+      print('이메일 인증 메일 전송 실패: $e');
+    }
+  }
+
+  Future<void> _checkEmailVerification() async {
+    User? user = _auth.currentUser;
+
+    try {
+      await user?.reload();
+      user = _auth.currentUser;
+
+      if (user != null && user.emailVerified) {
+        print('이메일이 인증되었습니다.');
+        // TODO: 여기에 로그인 로직을 추가하면 됩니다.
+      } else {
+        print('이메일이 아직 인증되지 않았습니다.');
+      }
+    } catch (e) {
+      print('이메일 인증 상태 확인 실패: $e');
+    }
+  }
+
   void checkNicknameAvailability(String nickname) async {
     // 여기에서 비동기적인 작업 수행 (파이어베이스 데이터베이스 등에서 중복 확인)
-
-    // 예시: Future.delayed를 사용하여 2초 동안 기다리는 작업을 수행한다고 가정
     await Future.delayed(Duration(seconds: 2));
-
-    // 중복 확인 로직을 통과하면 사용 가능한 닉네임으로 설정하세요.
     print('Nickname $nickname is available!');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(""),
+        backgroundColor: Color(0xFFF6E690),
+      ),
       backgroundColor: Color(0xFFF6E690),
       body: SingleChildScrollView(
         child: Center(
@@ -135,30 +157,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                             ),
-                            /* 이메일 인증 버튼
-                            Container(
-                              width: 100,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  // 이메일 인증 버튼 클릭 시 수행할 작업 추가
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[400],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  minimumSize: Size(90, 40),
-                                ),
-                                child: Text(
-                                  '이메일인증',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),*/
                           ],
                         ),
                       ),
@@ -260,27 +258,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                             ),
-                            /* 닉네임 중복확인 버튼
-                            ElevatedButton(
-                              onPressed: () {
-                                checkNicknameAvailability(nickname);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[400],
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                minimumSize: Size(90, 40),
-                              ),
-                              child: Text(
-                                '중복 확인',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),*/
                           ],
                         ),
                       ),
@@ -340,7 +317,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       _register();
-                      setState(() {});
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFFFF1B4),
@@ -361,36 +337,26 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: 20.0),
                 showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && userNickname.isNotEmpty && gender.isNotEmpty
-                    ? GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()), // 실제 로그인 페이지 위젯으로 변경해야 해
-                    );
-                  },
-                  child: SizedBox(
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(color: Colors.brown, fontSize: 17),
-                        children: [
-                          TextSpan(
-                            text: '  가입이 완료되었습니다.\n',
+                    ? SizedBox(
+                  child: RichText(
+                    text: TextSpan(
+                      style: TextStyle(color: Colors.brown, fontSize: 17),
+                      children: [
+                        TextSpan(
+                          text: '  가입이 완료되었습니다.\n',
+                        ),
+                        TextSpan(
+                          text: '이메일을 확인하고 로그인 페이지로 이동하기',
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.bold,
                           ),
-                          TextSpan(
-                            text: '로그인 페이지로 이동하기',
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              fontWeight: FontWeight.bold,
-                              // 밑줄 스타일을 설정할 수 있어요.
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 )
                     : SizedBox.shrink(),
-                //SizedBox(height: 20),
                 !isRegistered &&
                     showErrorMessage &&
                     (email.isEmpty ||
@@ -400,14 +366,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         userNickname.isEmpty ||
                         gender.isEmpty)
                     ? SizedBox(
-                  //height: 10,
                   child: Text(
                     '정보를 입력하세요.',
                     style: TextStyle(color: Colors.red, fontSize: 18),
                   ),
                 )
                     : SizedBox.shrink(),
-                //SizedBox(height: 20),
               ],
             ),
           ),

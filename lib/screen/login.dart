@@ -114,16 +114,45 @@ class LoginPage extends StatelessWidget {
                   String enteredPassword = passwordController.text;
 
                   try {
-                    await _auth.signInWithEmailAndPassword(
+                    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
                       email: enteredEmail,
                       password: enteredPassword,
                     );
 
-                    // 로그인에 성공하면 MainListPage로 이동
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => MainListPage()),
-                    );
+                    User? user = userCredential.user;
+
+                    if (user != null) {
+                      if (user.emailVerified) {
+                        // 이메일이 인증된 경우
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => MainListPage()),
+                        );
+                      } else {
+                        // 이메일이 인증되지 않은 경우
+                        // 사용자에게 인증 메일을 확인하라는 메시지를 보여줄 수 있습니다.
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('이메일 인증 필요'),
+                              content: Text('이메일을 확인하고 인증해주세요.'),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('확인'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    } else {
+                      // 사용자가 null인 경우 처리 (에러 또는 예외 상황)
+                      print('사용자 정보가 없습니다.');
+                    }
                   } catch (e) {
                     // 로그인에 실패한 경우
                     print("로그인 실패: $e");
@@ -133,8 +162,6 @@ class LoginPage extends StatelessWidget {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          surfaceTintColor: Colors.transparent,
-                          backgroundColor: Colors.white,
                           title: Text('로그인 실패'),
                           content: Text('이메일 또는 비밀번호가 잘못되었습니다.'),
                           actions: <Widget>[
@@ -150,6 +177,7 @@ class LoginPage extends StatelessWidget {
                     );
                   }
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.brown[300], // 버튼 색상 설정
                   shape: RoundedRectangleBorder(
@@ -165,6 +193,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
+
             ),
             SizedBox(height: 15), // 로그인 버튼과 회원가입 버튼 사이의 공간 추가
             Container(
