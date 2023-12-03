@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'FindRegister.dart';
 import 'Register.dart';
-import 'mainlist.dart'; // mainlist.dart 페이지 파일을 import
+import 'mainlist.dart';
 
 void main() {
   runApp(MyApp());
@@ -130,7 +130,7 @@ class LoginPage extends StatelessWidget {
                         );
                       } else {
                         // 이메일이 인증되지 않은 경우
-                        // 사용자에게 인증 메일을 확인하라는 메시지를 보여줄 수 있습니다.
+                        // 사용자에게 인증 메일을 확인하라는 메시지를 보여줄 수 있음
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -162,6 +162,8 @@ class LoginPage extends StatelessWidget {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
+                          surfaceTintColor: Colors.transparent,
+                          backgroundColor: Colors.white,
                           title: Text('로그인 실패'),
                           content: Text('이메일 또는 비밀번호가 잘못되었습니다.'),
                           actions: <Widget>[

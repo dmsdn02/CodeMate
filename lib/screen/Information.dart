@@ -29,13 +29,14 @@ class InformationPage extends StatelessWidget {
         backgroundColor: Colors.white,
       ),
       body: Container(
+        padding: EdgeInsets.only(bottom: 60),
         decoration: BoxDecoration(
           color: Color(0xFFF6E690), // 배경색 변경
         ),
         child: Center(
           child: SizedBox(
             width: 370, // 카드의 가로 길이 지정
-            height: 520, // 카드의 세로 길이 지정
+            height: 530, // 카드의 세로 길이 지정
             child: Card(
               surfaceTintColor: Colors.transparent,
               margin: EdgeInsets.only(top: 1),
@@ -51,7 +52,7 @@ class InformationPage extends StatelessWidget {
                   children: [
                     Text(
                       '방의 상세정보를 확인해주세요!',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.grey),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
                     ),
                     Text(
                       '$title',
@@ -100,7 +101,7 @@ class InformationPage extends StatelessWidget {
                     ),
                     Text(
                       '$content',
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: 16),
                     ),
                   ],
                 ),
@@ -110,7 +111,7 @@ class InformationPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 16, right: 63),
+        padding: const EdgeInsets.only(bottom: 40, right: 63),
         child: ElevatedButton(
           onPressed: () => _enterChatRoom(context),
           child: Padding(
@@ -118,7 +119,7 @@ class InformationPage extends StatelessWidget {
             child: Text('채팅방 입장', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Colors.white)),
           ),
           style: ElevatedButton.styleFrom(
-            primary: Colors.brown[300], // 버튼 배경색 변경
+            primary: Colors.orange[300], // 버튼 배경색 변경
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18), // 버튼 모양 변경
             ),

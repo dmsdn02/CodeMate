@@ -5,6 +5,7 @@ import 'package:code_mate/screen/mainlist.dart';
 import 'package:code_mate/screen/appbar.dart';
 //import 'package:url_launcher/url_launcher.dart';
 import 'ChatList.dart';
+import 'calendarpage.dart';
 import 'login.dart';
 
 void main() {
@@ -23,6 +24,8 @@ class MyPage extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("초대"),
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.white,
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -211,24 +214,24 @@ class MyPage extends StatelessWidget {
                               ),
                               Column(
                                 children: <Widget>[
-                                  Icon(Icons.calendar_today_outlined),
-                                  SizedBox(height: 5),
-                                  Text(
-                                    '일정',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                children: <Widget>[
-                                  Icon(Icons.history),
-                                  SizedBox(height: 5),
-                                  Text(
-                                    '기록',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  InkWell(
+                                    onTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        builder: (context) => CalendarPage(),
+                                      );
+                                    },
+                                    child: Column(
+                                      children: <Widget>[
+                                        Icon(Icons.calendar_today_outlined),
+                                        SizedBox(height: 5),
+                                        Text(
+                                          '일정',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -347,6 +350,8 @@ class LogoutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      surfaceTintColor: Colors.transparent,
+      backgroundColor: Colors.white,
       title: Text("로그아웃"),
       content: Text("로그아웃 하시겠습니까?"),
       actions: <Widget>[
@@ -384,6 +389,8 @@ class DeleteAccountDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      surfaceTintColor: Colors.transparent,
+      backgroundColor: Colors.white,
       title: Text("회원 탈퇴"),
       content: Text("정말 탈퇴 하시겠습니까?"),
       actions: <Widget>[
