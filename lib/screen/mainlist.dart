@@ -41,7 +41,7 @@ class _MainListPageState extends State<MainListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:Color(0xFFF6E690),
         title: Center(
           child: Text('스터디 그룹'),
         ),

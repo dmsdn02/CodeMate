@@ -60,6 +60,30 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Chat App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: ChatScreen(
+        title: 'Chat App',
+        userNickname: 'John Doe',
+        language: 'Dart',
+        content: 'Hello, World!',
+        roomId: 'room_1',
+      ),
+    );
+  }
+}
+
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   late IOWebSocketChannel _channel;
   late TextEditingController _controller;
@@ -276,6 +300,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _clearMessages() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('chat_messages');
+    setState(() {
+      _messages.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -283,6 +315,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         title: Text('Chat'),
         backgroundColor: Color(0xFFF6E690),
         actions: [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              _clearMessages();
+              // 다른 초기화 작업 수행 가능
+            },
+          ),
           IconButton(
             icon: Icon(Icons.exit_to_app),
             onPressed: () {},
